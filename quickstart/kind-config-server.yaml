@@ -1,0 +1,11 @@
+kind: Cluster
+apiVersion: kind.sigs.k8s.io/v1alpha3
+nodes:
+- role: control-plane
+- role: worker
+  extraPortMappings:
+  - containerPort: 30000
+    hostPort: 30000
+  extraMounts:
+  - containerPath: /mounts
+    hostPath: /var/lib/kind/mounts
