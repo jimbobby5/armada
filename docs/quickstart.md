@@ -19,9 +19,9 @@ This repository must be cloned locally. All commands are intended to be run from
 First create the 3 required Kind clusters:
 ```
 kindImage=kindest/node:v1.13.10
-kind create cluster --image $kindImage --name quickstart-armada-server --config ./quickstart/kind-config-server.yaml
-kind create cluster --image $kindImage --name quickstart-armada-executor-0 --config ./quickstart/kind-config-executor-0.yaml
-kind create cluster --image $kindImage --name quickstart-armada-executor-1 --config ./quickstart/kind-config-executor-1.yaml
+kind create cluster --image $kindImage --name quickstart-armada-server --config ./docs/quickstart/kind-config-server.yaml
+kind create cluster --image $kindImage --name quickstart-armada-executor-0 --config ./docs/quickstart/kind-config-executor-0.yaml
+kind create cluster --image $kindImage --name quickstart-armada-executor-1 --config ./docs/quickstart/kind-config-executor-1.yaml
 ```
 
 Ensure all clusters are up and running before continuing.
@@ -31,7 +31,7 @@ Ensure all clusters are up and running before continuing.
 export KUBECONFIG=$(kind get kubeconfig-path --name="quickstart-armada-server")
 
 # Configure Helm
-helm init && kubectl apply -f quickstart/server-helm-clusterrolebinding.yaml
+helm init && kubectl apply -f docs/quickstart/server-helm-clusterrolebinding.yaml
 kubectl wait --for=condition=available --timeout=600s deployment/tiller-deploy -n kube-system
 
 # Install Redis
@@ -41,7 +41,7 @@ helm install stable/redis-ha --name=redis --set persistentVolume.enabled=false -
 helm install stable/prometheus-operator --name=prometheus-operator --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false --set prometheus.prometheusSpec.ruleSelectorNilUsesHelmValues=false --set grafana.service.type=NodePort --set grafana.service.nodePort=30001 --set prometheus.service.type=NodePort
 
 # Install Armada server
-helm template ./deployment/armada -f ./quickstart/server-values.yaml --set prometheus.enabled=true | kubectl apply -f -
+helm template ./deployment/armada -f ./docs/quickstart/server-values.yaml --set prometheus.enabled=true | kubectl apply -f -
 ```
 ### Executor deployment
 
@@ -51,12 +51,12 @@ export DOCKERHOSTIP=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
 export KUBECONFIG=$(kind get kubeconfig-path --name="quickstart-armada-executor-0")	
 
 # Configure Helm
-helm init && kubectl apply -f quickstart/server-helm-clusterrolebinding.yaml
+helm init && kubectl apply -f docs/quickstart/server-helm-clusterrolebinding.yaml
 kubectl wait --for=condition=available --timeout=600s deployment/tiller-deploy -n kube-system
 
 # Install Prometheus
 helm install stable/prometheus-operator --name=prometheus-operator --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false --set prometheus.prometheusSpec.ruleSelectorNilUsesHelmValues=false --set prometheus.service.type=NodePort --set prometheus.service.nodePort=30002
-kubectl apply -f quickstart/prometheus-kubemetrics-rules.yaml
+kubectl apply -f docs/quickstart/prometheus-kubemetrics-rules.yaml
 
 # Install executor
 helm template ./deployment/executor --set applicationConfig.armada.url="$DOCKERHOSTIP:30000" | kubectl apply -f -
@@ -67,12 +67,12 @@ export DOCKERHOSTIP=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
 export KUBECONFIG=$(kind get kubeconfig-path --name="quickstart-armada-executor-1")	
 
 # Configure Helm
-helm init && kubectl apply -f quickstart/server-helm-clusterrolebinding.yaml
+helm init && kubectl apply -f docs/quickstart/server-helm-clusterrolebinding.yaml
 kubectl wait --for=condition=available --timeout=600s deployment/tiller-deploy -n kube-system
 
 # Install Prometheus
 helm install stable/prometheus-operator --name=prometheus-operator --set prometheus.prometheusSpec.serviceMonitorSelectorNilUsesHelmValues=false --set prometheus.prometheusSpec.ruleSelectorNilUsesHelmValues=false --set prometheus.service.type=NodePort --set prometheus.service.nodePort=30003
-kubectl apply -f quickstart/prometheus-kubemetrics-rules.yaml
+kubectl apply -f docs/quickstart/prometheus-kubemetrics-rules.yaml
 
 # Install executor
 helm template ./deployment/executor --set applicationConfig.armada.url="$DOCKERHOSTIP:30000" | kubectl apply -f -
@@ -83,7 +83,7 @@ helm template ./deployment/executor --set applicationConfig.armada.url="$DOCKERH
 export DOCKERHOSTIP=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
 curl -X POST -i http://admin:prom-operator@localhost:30001/api/datasources -H "Content-Type: application/json" -d '{"name":"cluster-0","type":"prometheus","url":"http://'$DOCKERHOSTIP':30002","access":"proxy","basicAuth":false}'
 curl -X POST -i http://admin:prom-operator@localhost:30001/api/datasources -H "Content-Type: application/json" -d '{"name":"cluster-1","type":"prometheus","url":"http://'$DOCKERHOSTIP':30003","access":"proxy","basicAuth":false}'
-curl -X POST -i http://admin:prom-operator@localhost:30001/api/dashboards/import --data-binary @./quickstart/grafana-armada-dashboard.json -H "Content-Type: application/json"
+curl -X POST -i http://admin:prom-operator@localhost:30001/api/dashboards/import --data-binary @./docs/quickstart/grafana-armada-dashboard.json -H "Content-Type: application/json"
 ```
 ### CLI installation
 
@@ -101,7 +101,7 @@ Create a queue, submit some jobs and monitor progress:
 ```
 armadaUrl=localhost:30000
 ./armadactl --armadaUrl=$armadaUrl create-queue test --priorityFactor 1
-./armadactl --armadaUrl=$armadaUrl submit ./quickstart/jobs.yaml
+./armadactl --armadaUrl=$armadaUrl submit ./docs/quickstart/jobs.yaml
 ./armadactl --armadaUrl=$armadaUrl watch job-set-1
 ```
 Log in to the Grafana dashboard at http://localhost:30001/ using the default credentials of `admin` / `prom-operator`.
@@ -112,6 +112,6 @@ Try submitting lots of jobs and see queues build and get processed:
 ```
 for i in {1..100}
 do
-  ./armadactl --armadaUrl=$armadaUrl submit ./quickstart/jobs.yaml  
+  ./armadactl --armadaUrl=$armadaUrl submit ./docs/quickstart/jobs.yaml  
 done
 ```
