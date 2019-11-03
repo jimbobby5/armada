@@ -1,4 +1,3 @@
-
 # Armada Quickstart
 
 The purpose of this guide is to install a minimal local Armada deployment for testing and evaluation purposes.
@@ -23,7 +22,6 @@ kindImage=kindest/node:v1.13.10
 kind create cluster --image $kindImage --name quickstart-armada-server --config ./quickstart/kind-config-server.yaml
 kind create cluster --image $kindImage --name quickstart-armada-executor-0 --config ./quickstart/kind-config-executor-0.yaml
 kind create cluster --image $kindImage --name quickstart-armada-executor-1 --config ./quickstart/kind-config-executor-1.yaml
-
 ```
 
 Ensure all clusters are up and running before continuing.
@@ -103,9 +101,17 @@ Create a queue, submit some jobs and monitor progress:
 ```
 armadaUrl=localhost:30000
 ./armadactl --armadaUrl=$armadaUrl create-queue test --priorityFactor 1
-./armadactl --armadaUrl=$armadaUrl submit ./example/jobs.yaml
+./armadactl --armadaUrl=$armadaUrl submit ./quickstart/jobs.yaml
 ./armadactl --armadaUrl=$armadaUrl watch job-set-1
 ```
 Log in to the Grafana dashboard at http://localhost:30001/ using the default credentials of `admin` / `prom-operator`.
 Navigate to the Armada Overview dashboard to get a view of jobs progressing through the system.
 
+Try submitting lots of jobs and see queues build and get processed:
+
+```
+for i in {1..100}
+do
+  ./armadactl --armadaUrl=$armadaUrl submit ./quickstart/jobs.yaml  
+done
+```
